@@ -1,5 +1,0 @@
-{
-  "python.pythonPath": ".venv\\Scripts\\python.exe",
-  "python.venvPath": "${workspace}/.venv/",
-  "python.formatting.provider": "autopep8"
-}
