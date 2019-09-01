@@ -1,5 +1,7 @@
 ﻿using cryptoAnalysisScraper.core.crawler.models;
+using cryptoAnalysisScraper.core.database;
 using HtmlAgilityPack;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,16 +16,15 @@ namespace cryptoAnalysisScraper.core.crawler
     {
         private const string BASE_URL = "https://bitcointalk.org/index.php?action=profile;";
         private System.Timers.Timer timer { get; set; } = new System.Timers.Timer();
-        public List<UserPageModel> list { get; set; } = new List<UserPageModel>();
-        public int Start { get; set; }
-        public int End { get; set; }
+        public int End { get; set; } = 3000000;
         public int i { get; set; }
         public bool isRunning { get; set; } = false;
-        public List<UserPageModel> Scrape(int start, int end)
+        private bool isWorking { get; set; } = false;
+        public void Scrape()
         {
-            Start = start;
-            End = end;
 
+            i = new MariaContext(new DbContextOptions<MariaContext>()).NumberToStartAt();
+            i++; //start at the NEXT one
             timer.Interval = 1000; //1 second
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
@@ -33,30 +34,36 @@ namespace cryptoAnalysisScraper.core.crawler
 
             while (isRunning)
             {
-                  Thread.Sleep(random.Next(10000));
+                  Thread.Sleep(random.Next(10000)); //keeps app alive
             }
-
-            return list;
-
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            if (isWorking)
+            {
+                return;
+            }
             if (i<End)
             {
+                isWorking = true;
                 HtmlWeb web = new HtmlWeb();
                 var doc = web.Load(MakeUrl(i));
                 var result = this.Parse(i, doc);
                 if (result != null)
                 {
-                    list.Add(result);
+                  var context =  new MariaContext(new DbContextOptions<MariaContext>()); //reinstaniating like this means its thread safe
+                   context.Users.Add(result); 
+                    context.SaveChanges();
                 }
                 i++;
+                isWorking = false;
             }
             else
             {
                 timer.Stop();
                 isRunning = false;
+                isWorking = false;
             }
         }
 
@@ -67,10 +74,7 @@ namespace cryptoAnalysisScraper.core.crawler
             }
             if (doc.DocumentNode.InnerText.Contains("403"))
             {
-                i--;
-                timer.Stop();
-                timer.Interval = 1500;
-                timer.Start();
+                throw new Exception("Error! getting 403 response. Quitting so we don't get locked out for longer!");
             }
 
             var item = new UserPageModel(id);
