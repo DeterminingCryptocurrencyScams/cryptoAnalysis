@@ -4,37 +4,73 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace cryptoAnalysisScraper.core.crawler
 {
     public class UserCrawler
     {
         private const string BASE_URL = "https://bitcointalk.org/index.php?action=profile;";
-
+        private System.Timers.Timer timer { get; set; } = new System.Timers.Timer();
+        public List<UserPageModel> list { get; set; } = new List<UserPageModel>();
+        public int Start { get; set; }
+        public int End { get; set; }
+        public int i { get; set; }
+        public bool isRunning { get; set; } = false;
         public List<UserPageModel> Scrape(int start, int end)
         {
-            var list = new List<UserPageModel>();
+            Start = start;
+            End = end;
 
-            
-            HtmlWeb web = new HtmlWeb();
+            timer.Interval = 1000; //1 second
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
+            isRunning = true;
 
-            for (int i = start; i < end; i++)
+            var random = new Random();
+
+            while (isRunning)
             {
-               
-             var doc = web.Load(MakeUrl(i));
+                  Thread.Sleep(random.Next(10000));
+            }
+
+            return list;
+
+        }
+
+        private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (i<End)
+            {
+                HtmlWeb web = new HtmlWeb();
+                var doc = web.Load(MakeUrl(i));
                 var result = this.Parse(i, doc);
                 if (result != null)
                 {
                     list.Add(result);
                 }
+                i++;
             }
-            return list;
+            else
+            {
+                timer.Stop();
+                isRunning = false;
+            }
         }
+
         private UserPageModel Parse(int id,HtmlDocument doc)
         {
             if (doc.DocumentNode.InnerHtml.Contains("An Error Has Occurred!")){
                 return null;
+            }
+            if (doc.DocumentNode.InnerText.Contains("403"))
+            {
+                i--;
+                timer.Stop();
+                timer.Interval = 1500;
+                timer.Start();
             }
 
             var item = new UserPageModel(id);
