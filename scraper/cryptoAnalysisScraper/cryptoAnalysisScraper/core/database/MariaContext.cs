@@ -59,24 +59,27 @@ namespace cryptoAnalysisScraper.core.database
                 {
                     task = this.ProfileScrapingStatuses.MaxAsync(f => f.Id);
                 }
-                task.Wait();
-                status = new UserProfileScrapingStatus(task.Result + 1, ProfileStatus.Working);
-                try
+                if (task != null)
                 {
-                this.ProfileScrapingStatuses.Add(status);
-                    this.SaveChanges();
-                    isFailed = false;
-                    
+                    task.Wait();
+                    status = new UserProfileScrapingStatus(task.Result + 1, ProfileStatus.Working);
+                    try
+                    {
+                        this.ProfileScrapingStatuses.Add(status);
+                        this.SaveChanges();
+                        isFailed = false;
+
+                    }
+                    catch (DbUpdateException)
+                    {
+                        // retry
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        //retry
+                    }
+
                 }
-                catch (DbUpdateException)
-                {
-                    // retry
-                }
-                catch(InvalidOperationException)
-                {
-                    //retry
-                }
-               
             }
             return status;
 
