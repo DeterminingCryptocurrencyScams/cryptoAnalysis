@@ -23,7 +23,7 @@ namespace cryptoAnalysisScraper.core.crawler
         public void Scrape()
         {
 
-            i = new MariaContext(new DbContextOptions<MariaContext>()).NumberToStartAt();
+            i = 0;/*new MariaContext(new DbContextOptions<MariaContext>()).NumberToStartAt();*/
             i++; //start at the NEXT one
             timer.Interval = 1000; //1 second
             timer.Elapsed += Timer_Elapsed;
@@ -79,6 +79,7 @@ namespace cryptoAnalysisScraper.core.crawler
 
             var item = new UserPageModel(id);
             item.Name = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.NameSelector));
+            item.Merit = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.MeritSelector));
             item.Posts = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.PostSelector));
             item.Activity = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.ActivitySelector));
             item.DateRegistered = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.DateRegisteredSelector));
