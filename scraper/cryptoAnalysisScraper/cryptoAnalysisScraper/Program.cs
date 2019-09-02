@@ -10,10 +10,8 @@ namespace cryptoAnalysisScraper
     {
         static void Main(string[] args)
         {
-
-                 new UserCrawler().Scrape();
-
-
+            Console.WriteLine("Program is starting");
+            new UserCrawler().Scrape();
         }
     }
 }

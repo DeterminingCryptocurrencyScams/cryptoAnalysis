@@ -1,5 +1,6 @@
 ﻿using cryptoAnalysisScraper.core.crawler.models;
 using cryptoAnalysisScraper.core.database;
+using cryptoAnalysisScraper.core.models;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,14 +18,10 @@ namespace cryptoAnalysisScraper.core.crawler
         private const string BASE_URL = "https://bitcointalk.org/index.php?action=profile;";
         private System.Timers.Timer timer { get; set; } = new System.Timers.Timer();
         public int End { get; set; } = 3000000;
-        public int i { get; set; }
         public bool isRunning { get; set; } = false;
         private bool isWorking { get; set; } = false;
         public void Scrape()
         {
-
-            i = 0;/*new MariaContext(new DbContextOptions<MariaContext>()).NumberToStartAt();*/
-            i++; //start at the NEXT one
             timer.Interval = 1000; //1 second
             timer.Elapsed += Timer_Elapsed;
             timer.Start();
@@ -44,19 +41,26 @@ namespace cryptoAnalysisScraper.core.crawler
             {
                 return;
             }
-            if (i<End)
+            var context = new MariaContext(); //reinstaniating like this means its thread safe
+            var status = context.NextProfile();
+            if (status.Id < End)
             {
                 isWorking = true;
                 HtmlWeb web = new HtmlWeb();
-                var doc = web.Load(MakeUrl(i));
-                var result = this.Parse(i, doc);
+                var doc = web.Load(MakeUrl(status.Id));
+                var result = this.Parse(status.Id, doc, status);
                 if (result != null)
                 {
-                  var context =  new MariaContext(new DbContextOptions<MariaContext>()); //reinstaniating like this means its thread safe
+                    status.Status = core.models.ProfileStatus.Complete;
+                    context.SetStatusForId(status);
                    context.Users.Add(result); 
                     context.SaveChanges();
                 }
-                i++;
+                else
+                {
+                    status.Status = core.models.ProfileStatus.ProfileNotPresent;
+                    context.SetStatusForId(status);
+                }
                 isWorking = false;
             }
             else
@@ -67,19 +71,23 @@ namespace cryptoAnalysisScraper.core.crawler
             }
         }
 
-        private UserPageModel Parse(int id,HtmlDocument doc)
+        private UserPageModel Parse(int id,HtmlDocument doc, UserProfileScrapingStatus userProfileStatus)
         {
             if (doc.DocumentNode.InnerHtml.Contains("An Error Has Occurred!")){
                 return null;
             }
             if (doc.DocumentNode.InnerText.Contains("403"))
             {
+                var context = new MariaContext();
+                userProfileStatus.Status = ProfileStatus.Error;
+                context.SetStatusForId(userProfileStatus);
                 throw new Exception("Error! getting 403 response. Quitting so we don't get locked out for longer!");
             }
 
             var item = new UserPageModel(id);
             item.Name = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.NameSelector));
             item.Merit = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.MeritSelector));
+            item.Position = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.PositionSelector));
             item.Posts = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.PostSelector));
             item.Activity = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.ActivitySelector));
             item.DateRegistered = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.DateRegisteredSelector));
