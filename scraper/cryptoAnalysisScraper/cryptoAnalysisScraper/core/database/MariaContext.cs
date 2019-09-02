@@ -16,12 +16,12 @@ namespace cryptoAnalysisScraper.core.database
         public MariaContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<MariaContext>();
-            optionsBuilder.UseMySql(@"Server=dockerhost;User Id=scraper;Database=scrapedData");
+            optionsBuilder.UseMySql(@"Server=localhost;User Id=scraper;Database=scrapedData");
             return new MariaContext();
         }
         protected override void OnConfiguring(DbContextOptionsBuilder o)
         {
-            o.UseMySql(@"Server=dockerhost;User Id=scraper;Database=scrapedData");
+            o.UseMySql(@"Server=localhost;User Id=scraper;Database=scrapedData");
         }
         public UserProfileScrapingStatus NextProfile()
         {
