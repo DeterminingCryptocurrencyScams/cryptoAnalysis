@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace cryptoAnalysisScraper.core.database
@@ -28,6 +29,7 @@ namespace cryptoAnalysisScraper.core.database
             bool isFailed = true;
             UserProfileScrapingStatus status = null;
             Task<int> task;
+            var random = new Random();
             while (isFailed)
             {
                 if (this.ProfileScrapingStatuses.Count() == 0 && this.Users.Count() == 0)
@@ -80,6 +82,7 @@ namespace cryptoAnalysisScraper.core.database
                     }
 
                 }
+                Thread.Sleep(random.Next(3000));
             }
             return status;
 

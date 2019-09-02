@@ -69,6 +69,7 @@ namespace cryptoAnalysisScraper.core.crawler
                 isRunning = false;
                 isWorking = false;
             }
+            context.Dispose();
         }
 
         private UserPageModel Parse(int id,HtmlDocument doc, UserProfileScrapingStatus userProfileStatus)
@@ -81,21 +82,28 @@ namespace cryptoAnalysisScraper.core.crawler
                 var context = new MariaContext();
                 userProfileStatus.Status = ProfileStatus.Error;
                 context.SetStatusForId(userProfileStatus);
+                context.Dispose();
                 throw new Exception("Error! getting 403 response. Quitting so we don't get locked out for longer!");
             }
 
             var item = new UserPageModel(id);
             item.Name = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.NameSelector));
-            item.Merit = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.MeritSelector));
-            item.Position = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.PositionSelector));
-            item.Posts = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.PostSelector));
-            item.Activity = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.ActivitySelector));
-            item.DateRegistered = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.DateRegisteredSelector));
-            item.LastActive = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.LastActiveSelector));
-            item.Gender = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.GenderSelector));
-            item.Age = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.AgeSelector));
-            item.Location = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.LocationSelector));
-            item.LocalTime = handleItem(doc.DocumentNode.SelectNodes(XpathSelectors.LocalTimeSelector));
+            var baseCol = doc.DocumentNode.SelectSingleNode(XpathSelectors.baseSelector);
+            if (baseCol == null)
+            {
+                throw new Exception("Error, should never be null!");
+            }
+            
+            item.Merit = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol,"Merit")}/td[2]"));
+            item.Position = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol, "Position")}/td[2]"));
+            item.Posts = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol, "Posts")}/td[2]"));
+            item.Activity = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol, "Activity")}/td[2]"));
+            item.DateRegistered = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol, "Date Registered")}/td[2]"));
+            item.LastActive = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol, "Last Active")}/td[2]"));
+            item.Gender = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol, "Gender")}/td[2]"));
+            item.Age = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol, "Age")}/td[2]"));
+            item.Location = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol, "Location")}/td[2]"));
+            item.LocalTime = handleItem(baseCol.SelectNodes($"{DynamicXpath(baseCol, "Local Time")}/td[2]"));
 
             return item;
         }
@@ -113,6 +121,12 @@ namespace cryptoAnalysisScraper.core.crawler
             {
                 return "";
             }
+        }
+        private string DynamicXpath(HtmlNode col, string searchingFor)
+        {
+           var node = col.ChildNodes.Where(f => f.InnerText.Contains(searchingFor)).FirstOrDefault();
+            return node.XPath;
+
         }
         private string MakeUrl(int id)
         {
