@@ -16,7 +16,7 @@ namespace cryptoAnalysisScraper.core.database
         }
         protected override void OnConfiguring(DbContextOptionsBuilder o)
         {
-            o.UseMySql(@"Server=dockerhost;User Id=scraper;Database=scrapedData");
+            o.UseMySql(@"Server=localhost;User Id=scraper;Database=scrapedData");
         }
         public int NumberToStartAt()
         {
