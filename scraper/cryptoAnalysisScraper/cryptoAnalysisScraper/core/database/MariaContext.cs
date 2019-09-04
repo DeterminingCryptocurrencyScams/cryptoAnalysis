@@ -30,6 +30,7 @@ namespace cryptoAnalysisScraper.core.database
             UserProfileScrapingStatus status = null;
             Task<int> task;
             var random = new Random();
+            int retries = 0;
             while (isFailed)
             {
                 if (this.ProfileScrapingStatuses.Count() == 0 && this.Users.Count() == 0)
@@ -81,6 +82,11 @@ namespace cryptoAnalysisScraper.core.database
                         //retry
                     }
 
+                }
+                retries++;
+                if (retries > 2)
+                {
+                    return null;
                 }
                 Thread.Sleep(random.Next(3000));
             }

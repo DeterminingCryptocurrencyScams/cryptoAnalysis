@@ -43,6 +43,11 @@ namespace cryptoAnalysisScraper.core.crawler
             }
             var context = new MariaContext(); //reinstaniating like this means its thread safe
             var status = context.NextProfile();
+            if (status == null)
+            {
+                context.Dispose();
+                return;
+            }
             if (status.Id < End)
             {
                 isWorking = true;
