@@ -84,7 +84,7 @@ namespace cryptoAnalysisScraper.core.database
 
                 }
                 retries++;
-                if (retries > 2)
+                if (retries > 9)
                 {
                     return null;
                 }
