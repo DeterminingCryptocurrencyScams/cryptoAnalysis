@@ -25,7 +25,7 @@ namespace cryptoAnalysisScraper.core.crawler
         {
 
             var formatter = new Serilog.Formatting.Json.JsonFormatter();
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information).Enrich.FromLogContext().WriteTo.File(formatter, "log-UserCrawler.json").CreateLogger();
+            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information).Enrich.FromLogContext().WriteTo.Console().CreateLogger();
 
             timer.Interval = 1000; //1 second
             timer.Elapsed += Timer_Elapsed;

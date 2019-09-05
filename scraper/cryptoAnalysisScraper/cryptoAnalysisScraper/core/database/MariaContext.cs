@@ -17,7 +17,7 @@ namespace cryptoAnalysisScraper.core.database
         {
             var formatter = new Serilog.Formatting.Json.JsonFormatter();
             
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information).Enrich.FromLogContext().WriteTo.File(formatter, "log-dbContext.json").CreateLogger();
+            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information).Enrich.FromLogContext().WriteTo.Console().CreateLogger();
         }
         public DbSet<UserPageModel> Users { get; set; }
         public DbSet<UserProfileScrapingStatus> ProfileScrapingStatuses { get; set; }
