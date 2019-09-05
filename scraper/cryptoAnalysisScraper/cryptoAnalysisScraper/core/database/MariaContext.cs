@@ -7,11 +7,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Serilog;
 namespace cryptoAnalysisScraper.core.database
 {
    public class MariaContext : DbContext
     {
+        
+        public MariaContext()
+        {
+            var formatter = new Serilog.Formatting.Json.JsonFormatter();
+            
+            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information).Enrich.FromLogContext().WriteTo.File(formatter, "log-dbContext.json").CreateLogger();
+        }
         public DbSet<UserPageModel> Users { get; set; }
         public DbSet<UserProfileScrapingStatus> ProfileScrapingStatuses { get; set; }
         public MariaContext CreateDbContext(string[] args)
@@ -30,9 +37,13 @@ namespace cryptoAnalysisScraper.core.database
         }
         public UserProfileScrapingStatus NextProfile()
         {
+            Log.Logger.Information("In next Profile");
             var s = new UserProfileScrapingStatus();
             this.ProfileScrapingStatuses.Add(s);
+            Log.Logger.Information("adding s to profileScrapingStatus");
+
             this.SaveChanges();
+            Log.Logger.Information($"saved changes, Starting work on {s.Id}");
             return s;
         }
         public bool SetStatusForId(int id, ProfileStatus status)
