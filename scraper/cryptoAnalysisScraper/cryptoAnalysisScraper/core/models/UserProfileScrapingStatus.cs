@@ -11,6 +11,10 @@ namespace cryptoAnalysisScraper.core.models
             Id = id;
             Status = status;
         }
+        public UserProfileScrapingStatus()
+        {
+            Status = ProfileStatus.Working;
+        }
         public int Id { get; set; }
         public ProfileStatus Status { get; set; }
     }

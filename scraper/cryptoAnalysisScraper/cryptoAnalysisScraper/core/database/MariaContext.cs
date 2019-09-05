@@ -24,74 +24,16 @@ namespace cryptoAnalysisScraper.core.database
         {
             o.UseMySql(@"Server=database-1.c0srsxgmo39w.us-east-2.rds.amazonaws.com;User Id=scraper;Database=innodb");
         }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<UserProfileScrapingStatus>().Property(f => f.Id).ValueGeneratedOnAdd();
+        }
         public UserProfileScrapingStatus NextProfile()
         {
-            bool isFailed = true;
-            UserProfileScrapingStatus status = null;
-            Task<int> task;
-            var random = new Random();
-            int retries = 0;
-            while (isFailed)
-            {
-                if (this.ProfileScrapingStatuses.Count() == 0 && this.Users.Count() == 0)
-                {
-                    task = null;
-                    try
-                    {
-                    status = new UserProfileScrapingStatus(1, ProfileStatus.Working);
-                    this.ProfileScrapingStatuses.Add(status);
-                    this.SaveChanges();
-                    return status;
-
-                    }
-                    catch (DbUpdateException)
-                    {
-                        // retry
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        //retry
-                    }
-                }
-                else if (this.ProfileScrapingStatuses.Count() == 0)
-                {
-                    
-                    task = this.Users.MaxAsync(f => f.Id);
-                }
-                else
-                {
-                    task = this.ProfileScrapingStatuses.MaxAsync(f => f.Id);
-                }
-                if (task != null)
-                {
-                    task.Wait();
-                    status = new UserProfileScrapingStatus(task.Result + 1, ProfileStatus.Working);
-                    try
-                    {
-                        this.ProfileScrapingStatuses.Add(status);
-                        this.SaveChanges();
-                        isFailed = false;
-
-                    }
-                    catch (DbUpdateException)
-                    {
-                        // retry
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        //retry
-                    }
-
-                }
-                retries++;
-                if (retries > 9)
-                {
-                    return null;
-                }
-                Thread.Sleep(random.Next(3000));
-            }
-            return status;
-
+            var s = new UserProfileScrapingStatus();
+            this.ProfileScrapingStatuses.Add(s);
+            this.SaveChanges();
+            return s;
         }
         public bool SetStatusForId(int id, ProfileStatus status)
         {
