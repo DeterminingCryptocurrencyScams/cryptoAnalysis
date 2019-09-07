@@ -1,3 +1,3 @@
 docker-compose pull
 docker system prune -y
-docker run --net=host scraperbot
+docker run --net=host cryptoanalysis

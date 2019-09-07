@@ -13,16 +13,16 @@ jobs:
             # Custom Build before implementing tag/branch system
             echo "Build official Docker image"
             cp ~/repo/.docker/Dockerfile .
-            docker build -t scraperbot .
+            docker build -t cryptoanalysis .
 
       - deploy:
           name: Publish application to docker hub
           command: |
             if [[ $CIRCLE_BRANCH == 'master' ]]; then
-              echo "Pushing master branch to scraperbot:latest"
+              echo "Pushing master branch to cryptoanalysis:latest"
               docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER_ID -p $DOCKER_HUB_PWD
-              docker tag scraperbot:latest $DOCKER_HUB_USER_ID/scraperbot:latest
-              docker push $DOCKER_HUB_USER_ID/scraperbot:latest
+              docker tag cryptoanalysis:latest $DOCKER_HUB_USER_ID/cryptoanalysis:latest
+              docker push $DOCKER_HUB_USER_ID/cryptoanalysis:latest
 
               exit 0
             fi;

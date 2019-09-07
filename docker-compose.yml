@@ -2,8 +2,8 @@ version: '3.7'
 
 services:
   
-  scraperbot:
-    image: rdv1123/scraperbot:latest
+  cryptoanalysis:
+    image: rdv1123/cryptoanalysis:latest
     restart: unless-stopped
     # ports:
     #   - 3000:3000
